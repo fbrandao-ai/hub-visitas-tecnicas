@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hub de Visitas Técnicas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: header de "súmula" + barra de filtros + grade de fichas por estádio, agrupadas por série */
+:root {
+  --bg: #f3f5f2;
+  --surface: #ffffff;
+  --fg: #17201a;
+  --muted: #5d6a61;
+  --line: #d6ddd7;
+  --accent: #1d6b3f;
+  --accent-soft: #e2efe6;
+  --a2: #8a5a12;
+  --a2-soft: #f4ead9;
+  --warn: #a2401d;
+  --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111613; --surface: #19201b; --fg: #e6ece7; --muted: #9aa89e; --line: #2c3730;
+    --accent: #5cc58a; --accent-soft: #1d3326; --a2: #e0b061; --a2-soft: #352a17; --warn: #f08a63;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #19201b; --fg: #e6ece7; --muted: #9aa89e; --line: #2c3730;
+  --accent: #5cc58a; --accent-soft: #1d3326; --a2: #e0b061; --a2-soft: #352a17; --warn: #f08a63;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; padding: 32px 20px 56px; }
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 28px; }
+
+header { display: grid; gap: 10px; border-bottom: 2px solid var(--fg); padding-bottom: 20px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(36px, 6vw, 56px); line-height: 1; margin: 0; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+.tally { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--mono); font-size: 13px; }
+.tally b { font-weight: 500; color: var(--fg); }
+.tally span { color: var(--muted); }
+.tally a { color: var(--accent); }
+
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.search { flex: 1 1 260px; min-width: 0; position: relative; }
+.search input { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); }
+.search input:focus-visible, .chip:focus-visible, .card a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font: 600 13px var(--body); padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+section { display: grid; gap: 14px; }
+.sec-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 28px; text-transform: uppercase; margin: 0; }
+.sec-head .count { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; grid-template-rows: auto auto 1fr auto; gap: 6px; min-width: 0; }
+.card .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tag { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); }
+.card.a2 .tag { background: var(--a2-soft); color: var(--a2); }
+.date { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stadium { font-family: var(--display); font-weight: 600; font-size: 22px; line-height: 1.1; text-transform: uppercase; margin: 4px 0 0; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: 14px; margin: 0; }
+.note { font-size: 12.5px; color: var(--warn); margin: 4px 0 0; }
+.links { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.links a { font: 600 13px var(--body); text-decoration: none; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--line); color: var(--fg); }
+.links a.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.card.a2 .links a.primary { background: var(--a2); border-color: var(--a2); }
+.links a:hover { filter: brightness(1.08); }
+.empty { color: var(--muted); padding: 24px 0; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+@media (prefers-reduced-motion: no-preference) { .links a { transition: filter .15s; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Paulistão · Comunicação &amp; TV · Vistorias de estádio</div>
+    <h1>Hub de Visitas Técnicas</h1>
+    <p class="lede">Todos os relatórios de vistoria em um só lugar. Busque por clube, estádio ou cidade e abra o relatório ou a pasta no Drive.</p>
+    <div class="tally" id="tally"></div>
+  </header>
+
+  <div class="controls">
+    <div class="search"><input id="q" type="search" placeholder="Buscar clube, estádio ou cidade…" aria-label="Buscar"></div>
+    <div class="chips" role="group" aria-label="Filtrar por série">
+      <button class="chip" data-f="all" aria-pressed="true">Todas</button>
+      <button class="chip" data-f="A1" aria-pressed="false">Série A1</button>
+      <button class="chip" data-f="A2" aria-pressed="false">Série A2</button>
+    </div>
+  </div>
+
+  <div id="out"></div>
+
+  <footer>Fonte: pastas “Paulistão A1” e A2 no Google Drive. Cada ficha aponta para o arquivo original; nada foi copiado.</footer>
+</div>
+
+<script>
+const F = id => "https://drive.google.com/file/d/" + id + "/view";
+const D = id => "https://drive.google.com/drive/folders/" + id;
+const VISITS = [
+  { s:"A1", n:1,  club:"Corinthians",        stadium:"Neo Química Arena",            city:"São Paulo",            date:"16/01/2024", dl:"Atualizado", file:"1TZr9mM_Iaq7mP0ZCRi2rjUyfIMk078vy", folder:"1U8y3-ZnpAeWPtwt0mT8hSlgBVcFZsiHx" },
+  { s:"A1", n:2,  club:"Santos",             stadium:"Urbano Caldeira",              city:"Santos",               date:"26/10/2023", dl:"Atualizado", file:"15xm61ZPDLt7Fnq3xpdyM3iVjb5DfL6Dl", folder:"1mQvvvX-OCnzBzrQ5Kjeoize574gd_vuK" },
+  { s:"A1", n:3,  club:"São Paulo",          stadium:"Cícero Pompeu de Toledo",      city:"São Paulo",            date:"16/01/2024", dl:"Atualizado", file:"1LiAfAMOP9ixcCzhSYWkxUslINn_lxl96", folder:"1G2WXQU_YyoI3oGtViqluR3r7eIJ3cTb7" },
+  { s:"A1", n:4,  club:"Botafogo-SP",        stadium:"Santa Cruz",                   city:"Ribeirão Preto",       date:"26/10/2023", dl:"Atualizado", file:"1z_IouOn1Z5eu0WDOgL86fFEa0HL07Qpi", folder:"1QdsfNnPG5yG0nQw2fNs3evGM-4kABMqx" },
+  { s:"A1", n:5,  club:"Palmeiras",          stadium:"Allianz Parque",               city:"São Paulo",            date:"26/10/2023", dl:"Atualizado", file:"17xRMYhe6iIMVGmwn21gHtTjH_WkmAK55", folder:"1IwZXBCjhk5KTM7FUGcY1qKeEaT-p_rNM" },
+  { s:"A1", n:6,  club:"Portuguesa",         stadium:"Dr. Oswaldo Teixeira Duarte",  city:"São Paulo",            date:"26/10/2023", dl:"Atualizado", file:"1cDueEcG01pByAxhzBQ8pS7Zl_ACN3sbK", folder:"1TzQCo_kp-SuBWJIAyDuVgfU8k8zSELAM" },
+  { s:"A1", n:7,  club:"Red Bull Bragantino",stadium:"Nabi Abi Chedid",              city:"Bragança Paulista",    date:"16/01/2024", dl:"Atualizado", file:"1VNpD6TeiYsKBwOZoE4KWS_tX8H-uUmzA", folder:"1BFQvc1NhJRZZxRKEceyQex6c_K-pjTUE" },
+  { s:"A1", n:8,  club:"Ituano",             stadium:"Dr. Novelli Junior",           city:"Itu",                  date:"26/10/2023", dl:"Atualizado", file:"1twp2gwoaFHzxvZER8IklT_zR8j6WJnrZ", folder:"1PGID5UNcBI0nF33r6-FPVK4LPq35EgUr" },
+  { s:"A1", n:9,  club:"Santo André",        stadium:"Bruno José Daniel",            city:"Santo André",          date:"26/10/2023", dl:"Atualizado", file:"1gacJpUlRoIpul63PE7n8jJ0pSEAdaBQB", folder:"1E6SteJP85s0MY9_lL-wJqNxVM9jHExnZ" },
+  { s:"A1", n:10, club:"São Bernardo",       stadium:"Primeiro de Maio",             city:"São Bernardo do Campo",date:"26/10/2023", dl:"Atualizado", file:"1DUjpaJUzQe50rQTqYWZR8kq7WBpYp45r", folder:"1l0MTZ0xOmax9FezoacENL7NpMvavnYIS" },
+  { s:"A1", n:11, club:"Mirassol",           stadium:"José Maria de Campos Maia",    city:"Mirassol",             date:"26/10/2023", dl:"Atualizado", file:"1Pc4xDkk6_qbaq-x6dd38JMqKdIJPkzZi", folder:"1PhMIzsQTg_4pAlylNm0LHPjOrjIyky5K" },
+  { s:"A1", n:12, club:"Guarani",            stadium:"Brinco de Ouro da Princesa",   city:"Campinas",             date:"26/10/2023", dl:"Atualizado", file:"1GJH6IeBrzD5ddjDTH1_cepEATnsXHJO8", folder:"1COhyWhGh7kdXlQIzDtWEyxjZb3TAZ2If" },
+  { s:"A1", n:13, club:"Inter de Limeira",   stadium:"Major José Levy Sobrinho",     city:"Limeira",              date:"16/01/2024", dl:"Atualizado", file:"1pEl1ueP3MYSXYQfduMNbXTmXt33hsgMw", folder:"1OZh-4Ogv5pkNusH9nq4u3Dm7bjSbtn-1" },
+  { s:"A1", n:14, club:"Ponte Preta",        stadium:"Moisés Lucarelli",             city:"Campinas",             date:"17/01/2024", dl:"Atualizado", file:"1hU2F8z7gRCNLAXhgFNVC34zodtOvOwsB", folder:"1TLNajZub4oMaf6ln4GHp858OHKpsHMpu" },
+  { s:"A1", n:15, club:"Novorizontino",      stadium:"Dr. Jorge Ismael de Biasi",    city:"Novo Horizonte",       date:"17/01/2024", dl:"Atualizado", file:"1NqNxOa3qDimdl1o9uEkSA7-CTsPt1U_h", folder:"1cFQcKSPEpg4WbH54neSHQsihc0300mJE" },
+  { s:"A1", n:16, club:"Água Santa",         stadium:"Distrital do Inamar",          city:"Diadema",              date:"11/01/2024", dl:"Atualizado", file:"18Tc478b1J3TbxJWJloO6DDV9MBV2eKCY", folder:"1CmQek8WWEmbe6lgWFRGOkMRQFWhi0fEE" },
+  { s:"A2", n:1,  club:"Linense",            stadium:"Gilberto Siqueira Lopes",      city:"Lins",                 date:"04/07/2023", dl:"Visita",     file:"1_BxCL5o9sZLhx7TlYC02QXByubMRlRIf", folder:"11wzd3OTzPNu8i00U8-21QXsZ7kT6hoEj", pdf:"1hs8PaGOCMeBU5unefpRmMPuEkaVJ2pNR",
+    note:"O relatório cita “Esporte Clube São Bento” como clube. Vale conferir." },
+  { s:"A2", n:2,  club:"Portuguesa Santista", stadium:"Ulrico Mursa",                city:"Santos",               date:"04/07/2023", dl:"Visita",     file:"1J8aWDZonjx-hNw6gx8Lj_Ln1qjY5YN30", folder:"1-1tEcqxG4st_AbB5qckZ6DG6CqAACuDL", pdf:"1GCLnN0zPrf8KsY8Jzk94iUTMz0rHfPIp" },
+  { s:"A2", n:3,  club:"Ferroviária",        stadium:"Fonte Luminosa",               city:"Araraquara",           date:"04/07/2023", dl:"Visita",     file:"1yyc1_BijftO2YzppIOwRhOAOoajpCwrT", folder:"1-xQv-at9PpLmcBBU-PCm3r9BjEPaekHJ", pdf:"1blDwClMwmmgPvAKlK3i-m5fOz9KAOq_u" },
+  { s:"A2", n:4,  club:"Juventus",           stadium:"Conde Rodolfo Crespi",         city:"São Paulo",            date:"23/02/2024", dl:"Revisita",   file:"1C1B4_AD35TblFvopGehTqfxvwVhFCxz2", folder:"1po4GNRABmriIQrhbZxEV9xhwlDI_OOSH", pdf:"1boO1CPbRJThLPMQogxgMLGXtAFi8t0Qm",
+    note:"Primeira visita em 05/07/2023 (PDF). O relatório foi atualizado em 2024." },
+  { s:"A2", n:5,  club:"Monte Azul",         stadium:"Otacília Patrício Arroyo",     city:"Monte Azul Paulista",  date:"05/07/2023", dl:"Visita",     file:"1wHjidgObZcpAOkwGPGHWsjFWy5nhcOK7", folder:"1Lvnoo1IwW-7mDT0HvDZM7rTAvLyEvAAr" },
+  { s:"A2", n:6,  club:"Taubaté",            stadium:"Joaquim de Morais Filho",      city:"Taubaté",              date:"06/07/2023", dl:"Visita",     file:"1M6dkQzErlNgRpJyGtKBO2c_dBEZLNBSv", folder:"1NtvKJrOa8UPlpxlbE6LAQe2oeVgLoSuz" },
+  { s:"A2", n:7,  club:"Primavera",          stadium:"Ítalo Mário Limongi",          city:"Indaiatuba",           date:"07/07/2023", dl:"Visita",     file:"1zymXfXJvqT_4iH2CImupqACjzJBWT-qA", folder:"1GnwU0WPP27096PhYxB3syHwR6InxLian", pdf:"1PElYT_n8nW_DbxJ4pJWACrlGJ6j4t-8J" },
+  { s:"A2", n:8,  club:"Oeste",              stadium:"Arena Barueri",                city:"Barueri",              date:"12/07/2023", dl:"Visita",     file:"1NG0pqMgGH-baktUiuW1w20jwYGfxpJo2", folder:"1yYkSy0gn9yWZ0Q-56RZPE0oA-WFuaFWr", pdf:"1-7W-RhhkCK-SPgdGMviZEcb1LVID9UQj" },
+  { s:"A2", n:9,  club:"Noroeste",           stadium:"Dr. Alfredo de Castilho",      city:"Bauru",                date:"17/07/2023", dl:"Visita",     file:"1qJF6DXxBx965br1KhfFUyqg4t2G77In1", folder:"1VszKGKAC85qevWeHjAXlw6HmHMjAiNZC", pdf:"1HubyxIaScguP2LpcZAnLMdCQU5BFtim8" },
+  { s:"A2", n:10, club:"XV de Piracicaba",   stadium:"Barão de Serra Negra",         city:"Piracicaba",           date:"17/07/2023", dl:"Visita",     file:"1rp_1UpBufbHUYz_22ord9hzyHUeiofvm", folder:"1fzQmRbCNeI-luTPOvGMc4yQCgAPueDT-" },
+  { s:"A2", n:11, club:"Comercial",          stadium:"Dr. Francisco de Palma Travassos", city:"Ribeirão Preto",   date:"20/07/2023", dl:"Visita",     file:"11yl66Ni9MRDkiPkLQH2yFxVFGiey8cNh", folder:"1QfcdM8RBOofzgk8gSdytwZgnh2rcmHAf" },
+  { s:"A2", n:12, club:"Velo Clube",         stadium:"Benito Agnelo Castellano",     city:"Rio Claro",            date:"24/07/2023", dl:"Visita",     file:"13wJMDFVcaMPRD85AyOfD8p9jBwYlJH3t", folder:"1c6BF-D8rvmDD7cFvtC1H9BJ2irS3Drtv", pdf:"14TuY-EoaTnLjwyAD7gw-WW_SoY7Oewx1" },
+  { s:"A2", n:13, club:"Rio Claro",          stadium:"Dr. Augusto Schmidt Filho",    city:"Rio Claro",            date:"24/07/2023", dl:"Visita",     file:"1Wl13s6mQRPlf3EuyWfc6bQSBTJ_sZbc5", folder:"1X2OV0PTGLE3jqMw-8v7J4sLFmSm9VXN4", pdf:"1IuKi58YuA7yDO0BnJfsbMQnu0RsmS2FK" },
+  { s:"A2", n:14, club:"São Bento",          stadium:"Municipal Walter Ribeiro (CIC)", city:"Sorocaba",           date:"14/08/2023", dl:"Visita",     file:"12YS46DGcPatuIvnaG_vmZjjCizyOSaVV", folder:"1AAkRs1yfnx7Ci5YfFVLf9lHHygmYaSms" }
+];
+const SERIES = { A1: { title:"Série A1", root:"1qQXvG_GWJ5qzzrNC_lFioRvyt-VhE5Mc" }, A2: { title:"Série A2", root:"13EvBxwQUMwfAsg6KO-Cs3R4jjNTILno5" } };
+
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+let filter = "all";
+try { filter = localStorage.getItem("hub-filter") || "all"; } catch (e) {}
+
+document.getElementById("tally").innerHTML =
+  `<span><b>${VISITS.length}</b> relatórios</span>` +
+  Object.entries(SERIES).map(([k, v]) =>
+    `<span><b>${VISITS.filter(x => x.s === k).length}</b> ${v.title} · <a href="${D(v.root)}" target="_blank" rel="noopener">pasta</a></span>`).join("");
+
+function card(v) {
+  return `<article class="card ${v.s.toLowerCase()}">
+    <div class="top"><span class="tag">${v.s} · ${String(v.n).padStart(2, "0")}</span><span class="date">${v.dl} ${v.date}</span></div>
+    <h3 class="stadium">${esc(v.stadium)}</h3>
+    <div><p class="meta">${esc(v.club)} · ${esc(v.city)}</p>${v.note ? `<p class="note">${esc(v.note)}</p>` : ""}</div>
+    <div class="links">
+      <a class="primary" href="${F(v.file)}" target="_blank" rel="noopener">Abrir relatório</a>
+      ${v.pdf ? `<a href="${F(v.pdf)}" target="_blank" rel="noopener">PDF da vistoria</a>` : ""}
+      <a href="${D(v.folder)}" target="_blank" rel="noopener">Pasta</a>
+    </div>
+  </article>`;
+}
+
+function render() {
+  const q = norm(document.getElementById("q").value.trim());
+  const hits = VISITS.filter(v => (filter === "all" || v.s === filter) &&
+    (!q || norm(`${v.club} ${v.stadium} ${v.city}`).includes(q)));
+  const out = document.getElementById("out");
+  if (!hits.length) { out.innerHTML = `<p class="empty">Nenhuma visita encontrada para essa busca.</p>`; return; }
+  out.innerHTML = `<div style="display:grid;gap:32px">` + Object.keys(SERIES).map(k => {
+    const list = hits.filter(v => v.s === k).sort((a, b) => a.n - b.n);
+    if (!list.length) return "";
+    return `<section><div class="sec-head"><h2>${SERIES[k].title}</h2><span class="count">${list.length} estádio${list.length > 1 ? "s" : ""}</span></div>
+      <div class="grid">${list.map(card).join("")}</div></section>`;
+  }).join("") + `</div>`;
+}
+
+document.querySelectorAll(".chip").forEach(b => {
+  b.setAttribute("aria-pressed", String(b.dataset.f === filter));
+  b.addEventListener("click", () => {
+    filter = b.dataset.f;
+    try { localStorage.setItem("hub-filter", filter); } catch (e) {}
+    document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c === b)));
+    render();
+  });
+});
+document.getElementById("q").addEventListener("input", render);
+render();
+</script>
+
+</body>
+</html>
